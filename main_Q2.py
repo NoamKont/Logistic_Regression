@@ -1,10 +1,8 @@
 import pandas as pd
 import math
-import time
 from LogisticRegression import LogisticRegression
 
 if __name__ == "__main__":
-    start_time = time.time()
     with open("..\spam_ham_dataset.csv") as file:
         df = pd.read_csv(file)
 
@@ -40,9 +38,9 @@ if __name__ == "__main__":
     # Convert dictionary to DataFrame
     bow_df = pd.DataFrame.from_dict(bow_dict, orient='index')
     bow_df = bow_df.fillna(0)
-
     logistic_regression = LogisticRegression()
     X_train, X_test, y_train, y_test = LogisticRegression.train_test_split(bow_df, y)  # split the dataset
-    logistic_regression.fit(X_train, y_train)
-    print("The weights are: ", logistic_regression.weights_[1:], "the b is:", logistic_regression.weights_[0])
-    print("The score test is: ", logistic_regression.score(X_train, y_train))
+    logistic_regression.gradient_descent(X_train, y_train)
+    #print("The weights are: ", logistic_regression.weights_[1:], "the b is:", logistic_regression.weights_[0])
+    print("The score test is: ", logistic_regression.score(X_test, y_test))
+    print("The best threshold that the false positive is the smallest is: ", logistic_regression.ROC_curve(y_test, logistic_regression.predict_proba(X_test)))
