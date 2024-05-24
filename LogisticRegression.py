@@ -7,17 +7,15 @@ class LogisticRegression:
     def __init__(self):
         self.weights_ = []  # weights[0] represent the 'b' and [1:] represent the weights vector.
         self.iterations = 5000
-        self.learning_rate = 0.1
+        self.learning_rate = 0.001
         self.thresh = 0.5
         self.arrayOfWeights = []
         self.numofclassify = 0
 
 
-
-
     def ROC_curve(self,y_true,y_prob):
         y_true = np.array([0 if x == -1 else 1 for x in y_true])
-        thresholds = np.linspace(0, 1, 100)
+        thresholds = np.linspace(0, 1, 200)
         tpr_values = []
         fpr_values = []
         num_positive_cases = sum(y_true)
@@ -34,9 +32,17 @@ class LogisticRegression:
         plt.scatter(fpr_values, tpr_values, label='ROC Curve')
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        best_threshold_index = np.argmax(np.array(tpr_values)-np.array(fpr_values))  # find the most successful threshold index
+        index_of_point = 0
+        smallest_x = float('inf')
+        for i, (x, y) in enumerate(zip(fpr_values, tpr_values)):
+            if 0.9 <= y <= 1.0:
+                if x < smallest_x:
+                    smallest_x = x
+                    index_of_point = i
+        best_threshold_index = index_of_point
+
         best_threshold = thresholds[best_threshold_index]
-        plt.scatter(fpr_values[best_threshold_index], tpr_values[best_threshold_index], marker='o', facecolors='green', s=40)
+        plt.scatter(fpr_values[best_threshold_index], tpr_values[best_threshold_index], marker='o', facecolors='red', s=40)
         plt.show()
         return best_threshold
 
@@ -44,25 +50,27 @@ class LogisticRegression:
 
 
     def sigmoid(self, x):
+        x = np.clip(x, -700, 700)
         return 1 / (1 + np.exp(-x))
+
+
+    def gradient(self, w, X, y):
+        a = -y*self.sigmoid(-y*(X@w))
+        return np.dot(a,X)
+
 
     def fit(self, X, y):
         ones_column = np.ones((X.shape[0], 1), dtype=X.dtype)  # adding a '1' column to represent the 'b' in the module.
         X = np.hstack((ones_column, X))
-        N = X.shape[0]
-
-        w = np.random.randn(X.shape[1])
-        for _ in range(self.iterations):
-            predictions = (2 * self.sigmoid(np.dot(X, w))) - 1
-            prob_dif = y - predictions
-            gradient = -np.dot(X.T, prob_dif) / N
-            if (np.linalg.norm(gradient) >= 0.001):
-                w -= self.learning_rate * gradient
+        w = np.zeros(X.shape[1])
+        # Gradient decent
+        for i in range(self.iterations):
+            g = self.gradient(w,X,y)  # g stand for gradient
+            if(np.linalg.norm(g) >= 0.001):#0.0085):
+                w = w - self.learning_rate * g
             else:
                 break
-
         self.weights_ = w
-
 
     def predict(self, X, add_bias=True):
         if add_bias:  # if we already add bias in the other function we don't need to add another '1' column
@@ -122,36 +130,3 @@ class LogisticRegression:
         pred = self.predictMulti(X)
         compared = self.compare_lists(y, pred)
         return np.sum(compared) / len(y)
-
-
-
-
-##these two function are another gradient decent algorithm but with less successful score.
-    def gradient(self, w, X, y):
-        N, n = X.shape  # N: number of samples, n: number of features
-        gradient = np.zeros(n)
-        for i in range(N):
-            x_i = X[i]
-            y_i = y[i]
-            z_i = y_i * np.dot(w,x_i)
-            gradient += (-y_i * x_i) / (self.sigmoid(-z_i))
-        gradient = (1/N) * np.array(gradient)
-        return np.array(gradient)
-
-    def calc_gradient(self, w, X, y):
-        a = -y*self.sigmoid(-y*(X@w))
-        return np.dot(a,X)
-    def gradient_descent(self, X, y):
-        ones_column = np.ones((X.shape[0], 1), dtype=X.dtype)  # adding a '1' column to represent the 'b' in the module.
-        X = np.hstack((ones_column, X))
-        w = np.zeros(X.shape[1])
-        # Gradient decent
-        for i in range(self.iterations):
-            g = self.calc_gradient(w,X,y)  # g stand for gradient
-            if(np.linalg.norm(g) >= 0.005):#0.0085):
-                w = w - self.learning_rate * g
-            else:
-                break
-        self.weights_ = w
-
-        ##gradient_descent

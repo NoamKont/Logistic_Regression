@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     logistic_regression = LogisticRegression()
     logistic_regression.multiFit(X_train, y_train)
-    print("The weights are: ",logistic_regression.arrayOfWeights)
+    print("The weights are: ", logistic_regression.arrayOfWeights)
     print("The score is: ", logistic_regression.scoreMulti(X_test, y_test))
 
 
